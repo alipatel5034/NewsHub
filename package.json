@@ -1,0 +1,13 @@
+{
+  "name": "newshub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack API-based news website powered by GNews and Express",
+  "scripts": {
+    "dev:client": "cmd /c \"cd client && npm run dev\"",
+    "dev:server": "cmd /c \"cd server && npm run dev\"",
+    "build:client": "cmd /c \"cd client && npm run build\"",
+    "build:server": "cmd /c \"cd server && npm run build\"",
+    "install:all": "cmd /c \"cd server && npm install\") && (cmd /c \"cd client && npm install\""
+  }
+}

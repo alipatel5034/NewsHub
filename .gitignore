@@ -1,0 +1,22 @@
+# Environment & Secrets (NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+package-lock.json (optional)
+
+# Build & Output directories
+dist/
+build/
+.vite/
+*.log
+*.timestamp-*.mjs
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
