@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { fetchNewsFeed } from "../services/newsApi.js";
 import { NewsArticle, SortOption } from "../types/news.js";
 import { TrendingTicker } from "../components/TrendingTicker.js";
+import { InteractiveCardDeck } from "../components/InteractiveCardDeck.js";
 import { LeftEditorialColumn } from "../components/LeftEditorialColumn.js";
 import { CenterHeroArticle } from "../components/CenterHeroArticle.js";
 import { RightRelatedArticles } from "../components/RightRelatedArticles.js";
@@ -86,6 +87,16 @@ export const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4">
         <TrendingTicker articles={articles} onSelectArticle={setSelectedModalArticle} />
       </div>
+
+      {/* Interactive 3D Card Deck (Swipe touchscreen / Scroll desktop) */}
+      {!isLoading && articles.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4">
+          <InteractiveCardDeck
+            articles={articles}
+            onSelectArticle={setSelectedModalArticle}
+          />
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 py-4">
         {isLoading ? (
