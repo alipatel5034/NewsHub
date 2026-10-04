@@ -12,6 +12,7 @@ package-lock.json (optional)
 dist/
 build/
 .vite/
+.vercel/
 *.log
 *.timestamp-*.mjs
 

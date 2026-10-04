@@ -4,10 +4,10 @@
   "private": true,
   "description": "Full-stack API-based news website powered by GNews and Express",
   "scripts": {
-    "dev:client": "cmd /c \"cd client && npm run dev\"",
-    "dev:server": "cmd /c \"cd server && npm run dev\"",
-    "build:client": "cmd /c \"cd client && npm run build\"",
-    "build:server": "cmd /c \"cd server && npm run build\"",
-    "install:all": "cmd /c \"cd server && npm install\") && (cmd /c \"cd client && npm install\""
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "cd server && npm install && npm run build",
+    "build:client": "cd client && npm install && npm run build",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev"
   }
 }

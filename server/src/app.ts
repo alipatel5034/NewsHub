@@ -10,7 +10,7 @@ import newsRoutes from "./routes/news.routes";
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: [env.CLIENT_ORIGIN, "http://localhost:5173", "http://127.0.0.1:5173"] }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.use("/api", apiRateLimiter);
