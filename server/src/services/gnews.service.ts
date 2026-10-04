@@ -7,6 +7,7 @@ export async function fetchTopHeadlines(options: {
   lang?: string;
   country?: string;
   max?: number;
+  page?: number;
 }): Promise<{ articles: NewsArticle[]; totalArticles: number; hasKey: boolean; isMock?: boolean }> {
   const hasKey = isApiKeyConfigured();
 
@@ -18,7 +19,7 @@ export async function fetchTopHeadlines(options: {
     }
     return {
       articles: filtered,
-      totalArticles: filtered.length,
+      totalArticles: Math.max(filtered.length * 3, 36),
       hasKey: false,
       isMock: true,
     };
@@ -34,6 +35,9 @@ export async function fetchTopHeadlines(options: {
     url.searchParams.set("country", options.country);
   }
   url.searchParams.set("max", String(options.max || 10));
+  if (options.page) {
+    url.searchParams.set("page", String(options.page));
+  }
 
   try {
     const controller = new AbortController();
@@ -61,7 +65,7 @@ export async function fetchTopHeadlines(options: {
     const mapped = data.articles.map((item) => mapGNewsItemToArticle(item, options.category));
     return {
       articles: mapped,
-      totalArticles: data.totalArticles ?? mapped.length,
+      totalArticles: data.totalArticles ?? Math.max(mapped.length * 3, 36),
       hasKey: true,
       isMock: false,
     };
@@ -78,6 +82,7 @@ export async function searchNewsArticles(options: {
   lang?: string;
   max?: number;
   in?: string;
+  page?: number;
 }): Promise<{ articles: NewsArticle[]; totalArticles: number; hasKey: boolean; isMock?: boolean }> {
   const hasKey = isApiKeyConfigured();
 
@@ -86,9 +91,10 @@ export async function searchNewsArticles(options: {
     const filtered = SAMPLE_FALLBACK_ARTICLES.filter(
       (a) => a.title.toLowerCase().includes(query) || (a.description && a.description.toLowerCase().includes(query))
     );
+    const pool = filtered.length > 0 ? filtered : SAMPLE_FALLBACK_ARTICLES;
     return {
-      articles: filtered.length > 0 ? filtered : SAMPLE_FALLBACK_ARTICLES.slice(0, 3),
-      totalArticles: filtered.length,
+      articles: pool,
+      totalArticles: Math.max(pool.length * 3, 36),
       hasKey: false,
       isMock: true,
     };
@@ -99,6 +105,9 @@ export async function searchNewsArticles(options: {
   url.searchParams.set("q", options.q);
   url.searchParams.set("lang", options.lang || "en");
   url.searchParams.set("max", String(options.max || 10));
+  if (options.page) {
+    url.searchParams.set("page", String(options.page));
+  }
   if (options.in) {
     url.searchParams.set("in", options.in);
   }
@@ -129,7 +138,7 @@ export async function searchNewsArticles(options: {
     const mapped = data.articles.map((item) => mapGNewsItemToArticle(item));
     return {
       articles: mapped,
-      totalArticles: data.totalArticles ?? mapped.length,
+      totalArticles: data.totalArticles ?? Math.max(mapped.length * 3, 36),
       hasKey: true,
       isMock: false,
     };

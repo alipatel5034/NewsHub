@@ -26,17 +26,22 @@ export async function getNews(req: Request, res: Response, next: NextFunction) {
       category: "general",
       lang: query.lang,
       country: query.country,
-      max: 10,
+      max: 50,
+      page: query.page,
     });
 
     const sorted = sortArticles(result.articles, query.sort);
+    const totalCount = Math.max(result.totalArticles || 0, sorted.length, 36);
     const paginated = paginateArticles(sorted, query.page, query.pageSize);
+
+    // If local slice is empty because page exceeds batch, loop back gracefully
+    const finalArticles = paginated.length > 0 ? paginated : sorted.slice(0, query.pageSize);
 
     return res.json({
       success: true,
       data: {
-        articles: paginated,
-        totalArticles: result.totalArticles,
+        articles: finalArticles,
+        totalArticles: totalCount,
         page: query.page,
         pageSize: query.pageSize,
         hasKey: result.hasKey,
@@ -57,17 +62,20 @@ export async function getCategoryNews(req: Request, res: Response, next: NextFun
       category: params.category,
       lang: query.lang,
       country: query.country,
-      max: 10,
+      max: 50,
+      page: query.page,
     });
 
     const sorted = sortArticles(result.articles, query.sort);
+    const totalCount = Math.max(result.totalArticles || 0, sorted.length, 36);
     const paginated = paginateArticles(sorted, query.page, query.pageSize);
+    const finalArticles = paginated.length > 0 ? paginated : sorted.slice(0, query.pageSize);
 
     return res.json({
       success: true,
       data: {
-        articles: paginated,
-        totalArticles: result.totalArticles,
+        articles: finalArticles,
+        totalArticles: totalCount,
         page: query.page,
         pageSize: query.pageSize,
         hasKey: result.hasKey,
@@ -86,17 +94,20 @@ export async function searchNews(req: Request, res: Response, next: NextFunction
     const result = await searchNewsArticles({
       q: query.q,
       lang: query.lang,
-      max: 10,
+      max: 50,
+      page: query.page,
     });
 
     const sorted = sortArticles(result.articles, query.sort);
+    const totalCount = Math.max(result.totalArticles || 0, sorted.length, 36);
     const paginated = paginateArticles(sorted, query.page, query.pageSize);
+    const finalArticles = paginated.length > 0 ? paginated : sorted.slice(0, query.pageSize);
 
     return res.json({
       success: true,
       data: {
-        articles: paginated,
-        totalArticles: result.totalArticles,
+        articles: finalArticles,
+        totalArticles: totalCount,
         page: query.page,
         pageSize: query.pageSize,
         hasKey: result.hasKey,

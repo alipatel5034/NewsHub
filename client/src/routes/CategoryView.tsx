@@ -69,6 +69,11 @@ export const CategoryView: React.FC = () => {
     setHeroIndex(0);
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const heroArticle = articles.length > 0 ? articles[heroIndex % articles.length] : null;
   const leftColumnArticles = articles.filter((_, idx) => idx !== heroIndex).slice(0, 2);
   const rightColumnArticles = articles.filter((_, idx) => idx !== heroIndex).slice(2, 6);
@@ -157,7 +162,7 @@ export const CategoryView: React.FC = () => {
               currentPage={currentPage}
               totalArticles={totalArticles}
               pageSize={pageSize}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
             />
           </>
         )}
