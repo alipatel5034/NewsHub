@@ -2,6 +2,17 @@ import { env, isApiKeyConfigured } from "../config/env";
 import { mapGNewsItemToArticle, SAMPLE_FALLBACK_ARTICLES } from "../mappers/gnews.mapper";
 import { GNewsResponse, NewsArticle } from "../types/news";
 
+function getFallbackNews(category?: string): NewsArticle[] {
+  let filtered = [...SAMPLE_FALLBACK_ARTICLES];
+  if (category && category !== "general") {
+    const categoryMatches = filtered.filter((a) => a.category === category);
+    if (categoryMatches.length > 0) {
+      filtered = categoryMatches;
+    }
+  }
+  return filtered;
+}
+
 export async function fetchTopHeadlines(options: {
   category?: string;
   lang?: string;
@@ -12,14 +23,10 @@ export async function fetchTopHeadlines(options: {
   const hasKey = isApiKeyConfigured();
 
   if (!hasKey) {
-    let filtered = [...SAMPLE_FALLBACK_ARTICLES];
-    if (options.category && options.category !== "general") {
-      filtered = filtered.filter((a) => a.category === options.category);
-      if (filtered.length === 0) filtered = SAMPLE_FALLBACK_ARTICLES;
-    }
+    const fallback = getFallbackNews(options.category);
     return {
-      articles: filtered,
-      totalArticles: Math.max(filtered.length * 3, 36),
+      articles: fallback,
+      totalArticles: Math.max(fallback.length * 3, 36),
       hasKey: false,
       isMock: true,
     };
@@ -47,19 +54,26 @@ export async function fetchTopHeadlines(options: {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("INVALID_API_KEY: The provided GNews API key is invalid or unauthorized.");
-      }
-      if (response.status === 429) {
-        throw new Error("RATE_LIMIT_EXCEEDED: GNews API request quota reached. Try again later.");
-      }
-      throw new Error(`PROVIDER_ERROR_${response.status}: Failed to fetch articles from GNews.`);
+      console.warn(`⚠️ GNews API returned status ${response.status}. Serving instant fallback news dispatches.`);
+      const fallback = getFallbackNews(options.category);
+      return {
+        articles: fallback,
+        totalArticles: Math.max(fallback.length * 3, 36),
+        hasKey: true,
+        isMock: true,
+      };
     }
 
     const data = (await response.json()) as GNewsResponse;
 
-    if (!data.articles) {
-      return { articles: [], totalArticles: 0, hasKey: true };
+    if (!data.articles || data.articles.length === 0) {
+      const fallback = getFallbackNews(options.category);
+      return {
+        articles: fallback,
+        totalArticles: Math.max(fallback.length * 3, 36),
+        hasKey: true,
+        isMock: true,
+      };
     }
 
     const mapped = data.articles.map((item) => mapGNewsItemToArticle(item, options.category));
@@ -70,10 +84,14 @@ export async function fetchTopHeadlines(options: {
       isMock: false,
     };
   } catch (err: any) {
-    if (err.name === "AbortError") {
-      throw new Error("REQUEST_TIMEOUT: GNews API server took too long to respond.");
-    }
-    throw err;
+    console.warn(`⚠️ Upstream GNews API fetch issue (${err.message}). Serving instant fallback news dispatches.`);
+    const fallback = getFallbackNews(options.category);
+    return {
+      articles: fallback,
+      totalArticles: Math.max(fallback.length * 3, 36),
+      hasKey: true,
+      isMock: true,
+    };
   }
 }
 
@@ -120,19 +138,34 @@ export async function searchNewsArticles(options: {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("INVALID_API_KEY: The provided GNews API key is invalid or unauthorized.");
-      }
-      if (response.status === 429) {
-        throw new Error("RATE_LIMIT_EXCEEDED: GNews API request quota reached. Try again later.");
-      }
-      throw new Error(`PROVIDER_ERROR_${response.status}: Failed to search articles on GNews.`);
+      console.warn(`⚠️ GNews Search API returned status ${response.status}. Serving instant fallback news dispatches.`);
+      const query = options.q.toLowerCase();
+      const filtered = SAMPLE_FALLBACK_ARTICLES.filter(
+        (a) => a.title.toLowerCase().includes(query) || (a.description && a.description.toLowerCase().includes(query))
+      );
+      const pool = filtered.length > 0 ? filtered : SAMPLE_FALLBACK_ARTICLES;
+      return {
+        articles: pool,
+        totalArticles: Math.max(pool.length * 3, 36),
+        hasKey: true,
+        isMock: true,
+      };
     }
 
     const data = (await response.json()) as GNewsResponse;
 
-    if (!data.articles) {
-      return { articles: [], totalArticles: 0, hasKey: true };
+    if (!data.articles || data.articles.length === 0) {
+      const query = options.q.toLowerCase();
+      const filtered = SAMPLE_FALLBACK_ARTICLES.filter(
+        (a) => a.title.toLowerCase().includes(query) || (a.description && a.description.toLowerCase().includes(query))
+      );
+      const pool = filtered.length > 0 ? filtered : SAMPLE_FALLBACK_ARTICLES;
+      return {
+        articles: pool,
+        totalArticles: Math.max(pool.length * 3, 36),
+        hasKey: true,
+        isMock: true,
+      };
     }
 
     const mapped = data.articles.map((item) => mapGNewsItemToArticle(item));
@@ -143,9 +176,17 @@ export async function searchNewsArticles(options: {
       isMock: false,
     };
   } catch (err: any) {
-    if (err.name === "AbortError") {
-      throw new Error("REQUEST_TIMEOUT: GNews API server took too long to respond.");
-    }
-    throw err;
+    console.warn(`⚠️ Upstream GNews Search issue (${err.message}). Serving instant fallback news dispatches.`);
+    const query = options.q.toLowerCase();
+    const filtered = SAMPLE_FALLBACK_ARTICLES.filter(
+      (a) => a.title.toLowerCase().includes(query) || (a.description && a.description.toLowerCase().includes(query))
+    );
+    const pool = filtered.length > 0 ? filtered : SAMPLE_FALLBACK_ARTICLES;
+    return {
+      articles: pool,
+      totalArticles: Math.max(pool.length * 3, 36),
+      hasKey: true,
+      isMock: true,
+    };
   }
 }
