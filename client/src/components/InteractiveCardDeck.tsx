@@ -16,9 +16,10 @@ export const InteractiveCardDeck: React.FC<InteractiveCardDeckProps> = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const { isSaved, toggle } = useBookmarks();
 
-  // Touch & Mouse Drag gesture state
+  // Touch & Mouse Drag gesture state & Scroll throttle
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const isScrollThrottled = useRef<boolean>(false);
 
   if (!articles || articles.length === 0) return null;
 
@@ -32,7 +33,7 @@ export const InteractiveCardDeck: React.FC<InteractiveCardDeckProps> = ({
     setActiveIndex((prev) => (prev - 1 + deckArticles.length) % deckArticles.length);
   };
 
-  // Touch Swipe Handlers
+  // Touch Swipe Handlers (High Sensitivity > 15px)
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -44,23 +45,37 @@ export const InteractiveCardDeck: React.FC<InteractiveCardDeckProps> = ({
   const handleTouchEnd = () => {
     if (!touchStartX.current || !touchEndX.current) return;
     const diffX = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 40;
+    const minSwipeDistance = 15; // Highly sensitive swipe
 
     if (diffX > minSwipeDistance) {
-      handleNext(); // Swiped left -> show next card
+      handleNext(); // Swiped left -> advance 1 card
     } else if (diffX < -minSwipeDistance) {
-      handlePrev(); // Swiped right -> show prev card
+      handlePrev(); // Swiped right -> advance 1 card
     }
 
     touchStartX.current = null;
     touchEndX.current = null;
   };
 
-  // Wheel Horizontal Scroll Handler
+  // Wheel Horizontal/Vertical Scroll Handler (Sensitive 1 Card per scroll step)
   const handleWheel = (e: React.WheelEvent) => {
-    if (Math.abs(e.deltaX) > 30) {
-      if (e.deltaX > 0) handleNext();
-      else handlePrev();
+    if (isScrollThrottled.current) return;
+
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+
+    if (Math.abs(delta) > 5) {
+      isScrollThrottled.current = true;
+
+      if (delta > 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+
+      // 250ms throttle cooldown for smooth 1-card scroll control
+      setTimeout(() => {
+        isScrollThrottled.current = false;
+      }, 250);
     }
   };
 
@@ -76,7 +91,7 @@ export const InteractiveCardDeck: React.FC<InteractiveCardDeckProps> = ({
           </p>
         </div>
 
-        {/* Controls */}
+        {/* Controls (Card count removed as requested) */}
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
@@ -85,9 +100,6 @@ export const InteractiveCardDeck: React.FC<InteractiveCardDeckProps> = ({
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-mono font-bold text-gray-600 dark:text-ink-soft px-2">
-            {activeIndex + 1} / {deckArticles.length}
-          </span>
           <button
             onClick={handleNext}
             className="p-2.5 rounded-full bg-white dark:bg-paper-cardDark border border-gray-300 dark:border-ink-gold/30 text-black dark:text-ink-gold hover:bg-black hover:text-white dark:hover:bg-ink-gold dark:hover:text-paper-dark transition-all shadow-sm cursor-pointer"
@@ -130,7 +142,7 @@ export const InteractiveCardDeck: React.FC<InteractiveCardDeckProps> = ({
                 zIndex,
                 opacity,
               }}
-              className="absolute w-[280px] sm:w-[340px] h-[380px] sm:h-[420px] bg-white dark:bg-paper-cardDark border-2 border-gray-900/10 dark:border-ink-gold/30 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ease-out flex flex-col group cursor-pointer"
+              className="absolute w-[280px] sm:w-[340px] h-[380px] sm:h-[420px] bg-white dark:bg-paper-cardDark border-2 border-gray-900/10 dark:border-ink-gold/30 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ease-out flex flex-col group cursor-pointer"
             >
               {/* Card Image */}
               <div className="relative w-full h-56 sm:h-64 bg-gray-900 overflow-hidden">
@@ -138,7 +150,7 @@ export const InteractiveCardDeck: React.FC<InteractiveCardDeckProps> = ({
                   <img
                     src={art.imageUrl}
                     alt={art.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                       (e.target as HTMLElement).style.display = "none";
                     }}

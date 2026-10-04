@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, ArrowRight, Bookmark, Check, Newspaper } from "lucide-react";
+import { Search, Bookmark, Newspaper, Sun, ShieldCheck } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle.js";
 import { useBookmarks } from "../hooks/useBookmarks.js";
 
@@ -21,9 +21,18 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const { bookmarks } = useBookmarks();
 
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const updateClock = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+    };
+    updateClock();
+    const interval = setInterval(updateClock, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -31,17 +40,6 @@ export const Header: React.FC = () => {
     day: "numeric",
     year: "numeric",
   });
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setTimeout(() => {
-        setSubscribed(false);
-        setEmail("");
-      }, 3000);
-    }
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,30 +53,21 @@ export const Header: React.FC = () => {
       {/* 3-Column Newspaper Header */}
       <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center border-b border-gray-200 dark:border-ink-gold/20">
         
-        {/* Left Column: Subscribe Module */}
+        {/* Left Column: Useful Live Press Briefing & Edition Status Widget (Replacing Subscribe box) */}
         <div className="md:col-span-3 text-left">
-          <h3 className="font-serif font-bold text-xs text-black dark:text-ink-bright">
-            Subscribe to all the news
-          </h3>
-          <p className="text-[11px] text-gray-500 dark:text-ink-soft mb-1.5">
-            Never miss the latest updates
-          </p>
-          <form onSubmit={handleSubscribe} className="relative flex items-center max-w-xs">
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white dark:bg-paper-cardDark border border-gray-300 dark:border-ink-gold/30 text-xs px-2.5 py-1 rounded placeholder-gray-400 focus:outline-none focus:border-black dark:focus:border-ink-gold"
-            />
-            <button
-              type="submit"
-              className="absolute right-1 text-gray-600 dark:text-ink-gold hover:text-black transition-colors cursor-pointer p-0.5"
-              title="Subscribe"
-            >
-              {subscribed ? <Check className="w-3.5 h-3.5 text-green-600" /> : <ArrowRight className="w-3.5 h-3.5" />}
-            </button>
-          </form>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-black dark:text-ink-bright mb-1 font-mono uppercase tracking-wider">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Global Live Edition</span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-gray-600 dark:text-ink-soft font-sans">
+            <span className="flex items-center gap-1 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-ink-gold px-2 py-0.5 rounded font-medium border border-amber-200 dark:border-amber-800/40">
+              <Sun className="w-3 h-3 text-amber-600" />
+              <span>24°C Clear</span>
+            </span>
+            <span className="font-mono text-gray-700 dark:text-ink-bright font-bold">
+              {currentTime || "Live"}
+            </span>
+          </div>
         </div>
 
         {/* Center Column: NewsHub Masthead & Date */}
