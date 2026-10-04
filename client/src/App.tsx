@@ -28,7 +28,7 @@ export const App: React.FC = () => {
         <footer className="w-full bg-paper dark:bg-paper-cardDark border-t border-ink/20 dark:border-ink-gold/30 py-8 px-4 text-center mt-12 transition-colors">
           <div className="max-w-7xl mx-auto space-y-3">
             <p className="font-serif text-sm font-bold text-ink dark:text-ink-gold">
-              NEWSHUB — THE VINTAGE ENGRAVED DIGITAL PRESS
+              NEWS<span className="text-red-600 dark:text-red-500">HUB</span> — THE VINTAGE ENGRAVED DIGITAL PRESS
             </p>
             <p className="text-xs text-ink-muted dark:text-ink-soft max-w-xl mx-auto leading-relaxed">
               Full-stack news aggregation application retrieving live articles from GNews API. All trademarks and publisher metadata belong to their respective owners.

@@ -76,7 +76,7 @@ export const Header: React.FC = () => {
             <div className="flex items-center justify-center gap-2">
               <Newspaper className="w-7 h-7 sm:w-9 sm:h-9 text-black dark:text-ink-gold group-hover:scale-105 transition-transform" />
               <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-black dark:text-ink-bright uppercase engraved-title">
-                NewsHub
+                NEWS<span className="text-red-600 dark:text-red-500">HUB</span>
               </h1>
             </div>
           </Link>
